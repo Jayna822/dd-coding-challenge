@@ -26,6 +26,14 @@ REPO_DETAILS_TEMPLATE = {
     'topics': []
 }
 
+ERROR_TEMPLATE = {
+    'error': True,
+    'err_msg': None,
+    'status_code': None,
+    'url': None,
+    'err_text': None
+}
+
 def get_github_info(org):
     response = requests.get('{}/orgs/{}/repos'.format(GITHUB_API, org))
     if response.ok:
@@ -72,8 +80,7 @@ def get_github_info(org):
 
         return results
     else:
-        # Response not ok
-        return 'Error'
+        return handle_err(response)
 
 
 def get_bitbucket_info(team):
@@ -117,13 +124,21 @@ def get_bitbucket_info(team):
 
         return results
     else:
-        # Response not ok
-        return 'Error'
+        return handle_err(response)
 
     # There's another api call to get a team's followers. This number is different from the total
     #   watchers count I got above. I assume followers are team-level, while watchers are repo-level.
     #   Going to stick with returning watchers since it seems more similar to Github watchers.
     #   response = requests.get('{}/teams/{}/followers'.format(BITBUCKET_API, team))
+
+
+def handle_err(response):
+    err_response = copy.deepcopy(ERROR_TEMPLATE)
+    err_response['err_msg'] = 'There was an error in retreiving results from the API'
+    err_response['status_code'] = response.status_code
+    err_response['url'] = response.url
+    err_response['err_text'] = response.text
+    return err_response
 
 
 def merge_dicts(dict1, dict2, exclude_extra_keys=False):

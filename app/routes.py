@@ -1,9 +1,9 @@
 import logging
 
 import flask
-from flask import Response
+from flask import Response, jsonify
 
-from app.api_logic import get_github_info, get_bitbucket_info
+from app.api_logic import get_github_info, get_bitbucket_info, merge_dicts
 
 app = flask.Flask("user_profiles_api")
 logger = flask.logging.create_logger(app)
@@ -26,13 +26,13 @@ def merge(user, user2=None):
     In the case of differing profile names,
         the Github profile name must be first followed by the Bitbucket profile name
     """
-    # github_org = user
-    # bb_team = user2 or user
 
     github_info = get_github_info(user)
     bitbucket_info = get_bitbucket_info(user2 or user)
 
-    return 'Profile1: {}, Profile2: {}'.format(user, user2)
+    result = merge_dicts(github_info, bitbucket_info)
+
+    return jsonify(result)
 #
 # if __name__ == "__main__":
 #     app.run(debug=True)

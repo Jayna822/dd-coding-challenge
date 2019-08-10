@@ -1,5 +1,6 @@
 import requests
 import copy
+import numbers
 
 GITHUB_API = 'https://api.github.com' # currently v3
 BITBUCKET_API = 'https://api.bitbucket.org/2.0'
@@ -18,6 +19,7 @@ RESULTS_TEMPLATE = {
 }
 
 REPO_DETAILS_TEMPLATE = {
+    'remote_host': None,
     'name': None,
     'number_of_watchers': 0,
     'language': None,
@@ -30,19 +32,24 @@ def get_github_info(org):
         results = copy.deepcopy(RESULTS_TEMPLATE)
         repos = response.json()
         for repo in repos:
+
+            # fork info
             if repo.get('fork'):
                 results['total_forked_repos'] += 1
             else:
                 results['total_original_repos'] += 1
 
+            # watchers info
             results['total_watchers'] += repo.get('watchers_count')
 
+            # language info
             if repo.get('language'):
                 if results['languages'].get(repo.get('language')):
                     results['languages'][repo.get('language')] += 1
                 else:
                     results['languages'][repo.get('language')] = 1
 
+            # topics info
             if repo.get('topics'):
                 for topic in repo.get('topics'):
                     if results['topics'].get(topic):
@@ -50,7 +57,9 @@ def get_github_info(org):
                     else:
                         results['languages'][topic] = 1
 
-            repo_details = REPO_DETAILS_TEMPLATE.copy()
+            # repo details info
+            repo_details = copy.deepcopy(REPO_DETAILS_TEMPLATE)
+            repo_details['remote_host'] = 'GitHub'
             repo_details['name'] = repo.get('name')
             repo_details['number_of_watchers'] = repo.get('watchers_count')
             repo_details['language'] = repo.get('language')
@@ -68,15 +77,15 @@ def get_github_info(org):
 
 
 def get_bitbucket_info(team):
-    results = copy.deepcopy(RESULTS_TEMPLATE)
-
     response = requests.get('{}/repositories/{}'.format(BITBUCKET_API, team))
     if response.ok:
+        results = copy.deepcopy(RESULTS_TEMPLATE)
         data = response.json()
         repos = data.get('values')
         if repos:
             for repo in repos:
-                repo_details = REPO_DETAILS_TEMPLATE.copy()
+                repo_details = copy.deepcopy(REPO_DETAILS_TEMPLATE)
+                repo_details['remote_host'] = 'BitBucket'
                 repo_details['name'] = repo.get('name')
 
                 # api response doesn't seem to contain fork v original information
@@ -105,6 +114,8 @@ def get_bitbucket_info(team):
                 results['repo_details'].append(repo_details)
 
         results['total_languages'] = len(results['languages'].keys())
+
+        return results
     else:
         # Response not ok
         return 'Error'
@@ -114,3 +125,37 @@ def get_bitbucket_info(team):
     #   Going to stick with returning watchers since it seems more similar to Github watchers.
     #   response = requests.get('{}/teams/{}/followers'.format(BITBUCKET_API, team))
 
+
+def merge_dicts(dict1, dict2, exclude_extra_keys=False):
+    '''
+    Merge two dictionaries with similar/same keys
+    :param dict1:
+    :param dict2:
+    :param exclude_extra_keys: Only include matching keys between two dictionaries
+    :return:
+    '''
+    result = {}
+    for key, item1 in dict1.items():
+        item2 = dict2.get(key)
+        if item2 != None:
+            if (type(item1) != type(item2)) or (type(item1) == 'str'):
+                result['{}_1'.format(key)] = item1
+                result['{}_2'.format(key)] = item2
+            elif isinstance(item1, numbers.Number):
+                result[key] = item1 + item2
+            elif isinstance(item1, dict):
+                result[key] = merge_dicts(item1, item2)
+            elif isinstance(item1, list):
+                try:
+                    result[key] = list(set(item1 + item2))
+                except TypeError:
+                    # This will be thrown when the list items are dictionaries
+                    result[key] = item1 + item2
+        else:
+            result[key] = item1
+    if not exclude_extra_keys:
+        remaining_dict2_keys = list(set(dict2.keys()) - set(dict1.keys()))
+        for key in remaining_dict2_keys:
+            result[key] = dict2.get(key)
+
+    return result

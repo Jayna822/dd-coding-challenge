@@ -141,36 +141,45 @@ def handle_err(response):
     return err_response
 
 
-def merge_dicts(dict1, dict2, exclude_extra_keys=False):
+def merge_dicts(dict1, dict2):
     '''
     Merge two dictionaries with similar/same keys
     :param dict1:
     :param dict2:
-    :param exclude_extra_keys: Only include matching keys between two dictionaries
-    :return:
+    :return: merged dictionary; includes all keys from both input dicts.
+            In cases where key is the same, merge is dependent on value type.
+            For numbers and lists, values are summed/combined.
+            For dicts, values are merged.
+            For all other types, values are added to result dict as separate keys
     '''
     result = {}
-    for key, item1 in dict1.items():
-        item2 = dict2.get(key)
-        if item2 != None:
-            if (type(item1) != type(item2)) or (type(item1) == 'str'):
-                result['{}_1'.format(key)] = item1
-                result['{}_2'.format(key)] = item2
-            elif isinstance(item1, numbers.Number):
-                result[key] = item1 + item2
-            elif isinstance(item1, dict):
-                result[key] = merge_dicts(item1, item2)
-            elif isinstance(item1, list):
+    for key, value1 in dict1.items():
+        value2 = dict2.get(key)
+        if value2 != None:
+            if (type(value1) != type(value2)):
+                # Could throw an exception here, but I'll just add both
+                result['{}_1'.format(key)] = value1
+                result['{}_2'.format(key)] = value2
+            elif isinstance(value1, numbers.Number):
+                result[key] = value1 + value2
+            elif isinstance(value1, dict):
+                result[key] = merge_dicts(value1, value2)
+            elif isinstance(value1, list):
                 try:
-                    result[key] = list(set(item1 + item2))
+                    result[key] = list(set(value1 + value2))
                 except TypeError:
                     # This will be thrown when the list items are dictionaries
-                    result[key] = item1 + item2
+                    result[key] = value1 + value2
+            else:
+                # For all other types, just add the values as separate keys
+                result['{}_1'.format(key)] = value1
+                result['{}_2'.format(key)] = value2
         else:
-            result[key] = item1
-    if not exclude_extra_keys:
-        remaining_dict2_keys = list(set(dict2.keys()) - set(dict1.keys()))
-        for key in remaining_dict2_keys:
-            result[key] = dict2.get(key)
+            result[key] = value1
+
+    # There could be keys left over in dict2 - adding them to result here
+    remaining_dict2_keys = list(set(dict2.keys()) - set(dict1.keys()))
+    for key in remaining_dict2_keys:
+        result[key] = dict2.get(key)
 
     return result

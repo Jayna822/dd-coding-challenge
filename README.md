@@ -57,7 +57,7 @@ not successful, results will be a dictionary containing information about the er
 ```merge```: This will only be included in jSON response if both API calls were successful. This will
 contain a dictionary with the merged profile data from both API's.
 
-###Example Request & Response
+### Example Request & Response
 
 ```curl -i "http://127.0.0.1:5000/merge/pygame"```
 

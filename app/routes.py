@@ -1,25 +1,21 @@
-import logging
 
-import flask
 from flask import Response, jsonify
 
+from app import app_blueprint
 from app.api_logic import get_github_info, get_bitbucket_info, merge_dicts
 
-app = flask.Flask("user_profiles_api")
-logger = flask.logging.create_logger(app)
-logger.setLevel(logging.INFO)
 
-@app.route("/health-check", methods=["GET"])
+@app_blueprint.route("/health-check", methods=["GET"])
 def health_check():
     """
     Endpoint to health check API
     """
-    app.logger.info("Health Check!")
+    # app.logger.info("Health Check!")
     return Response("All Good!", status=200)
 
 
-@app.route("/merge/<profile>", methods=["GET"])
-@app.route("/merge/<profile>/<profile2>", methods=["GET"])
+@app_blueprint.route("/merge/<profile>", methods=["GET"])
+@app_blueprint.route("/merge/<profile>/<profile2>", methods=["GET"])
 def merge(profile, profile2=None):
     """
     Merge profiles from Github and Bitbucket together.
@@ -43,9 +39,3 @@ def merge(profile, profile2=None):
         data['merge'] = merge_result
 
     return jsonify(data)
-
-
-#
-# if __name__ == "__main__":
-#     app.run(debug=True)
-

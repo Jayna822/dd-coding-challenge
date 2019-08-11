@@ -52,10 +52,10 @@ def get_github_info(org):
 
             # language info
             if repo.get('language'):
-                if results['languages'].get(repo.get('language')):
-                    results['languages'][repo.get('language')] += 1
+                if results['languages'].get(repo.get('language').lower()):
+                    results['languages'][repo.get('language').lower()] += 1
                 else:
-                    results['languages'][repo.get('language')] = 1
+                    results['languages'][repo.get('language').lower()] = 1
 
             # topics info
             if repo.get('topics'):
@@ -101,10 +101,10 @@ def get_bitbucket_info(team):
                 # language info
                 if repo.get('language'):
                     repo_details['language'] = repo.get('language')
-                    if results['languages'].get(repo.get('language')):
-                        results['languages'][repo.get('language')] += 1
+                    if results['languages'].get(repo.get('language').lower()):
+                        results['languages'][repo.get('language').lower()] += 1
                     else:
-                        results['languages'][repo.get('language')] = 1
+                        results['languages'][repo.get('language').lower()] = 1
 
                 # watchers info
                 watchers_link = repo['links'].get('watchers')

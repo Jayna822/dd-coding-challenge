@@ -1,10 +1,11 @@
 import pytest
-from flask import Flask
+
+from app import create_app
 
 
 @pytest.fixture(scope='module')
 def test_client():
-    flask_app = Flask(__name__)
+    flask_app = create_app()
     testing_client = flask_app.test_client()
 
     ctx = flask_app.app_context()

@@ -68,7 +68,7 @@ def test_merge_dicts():
     assert set(merged_dict['d'].keys()) == {'apple', 'age', 'hobbies', 'carrot', 'banana'}
     assert merged_dict['d']['apple'] == 'red'
     assert merged_dict['d']['age'] == 67
-    assert merged_dict['d']['hobbies'] == [None, 'sleeping']
+    assert set(merged_dict['d']['hobbies']) == {None, 'sleeping'}
     assert merged_dict['d']['carrot'] == 'orange'
     assert merged_dict['d']['banana'] == 'yellow'
     assert merged_dict['e'] == None

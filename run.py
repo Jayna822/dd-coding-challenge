@@ -1,3 +1,4 @@
-from app.routes import app
+from app import create_app
 
-app.run(debug=True)
+app = create_app()
+app.run()

@@ -155,7 +155,7 @@ def merge_dicts(dict1, dict2):
     result = {}
     for key, value1 in dict1.items():
         value2 = dict2.get(key)
-        if value2 != None:
+        if value2 != None: # explicit None test to prevent falsey values getting through
             if (type(value1) != type(value2)):
                 # Could throw an exception here, but I'll just add both
                 result['{}_1'.format(key)] = value1
@@ -175,6 +175,7 @@ def merge_dicts(dict1, dict2):
                 result['{}_1'.format(key)] = value1
                 result['{}_2'.format(key)] = value2
         else:
+            # Key only found in dict1
             result[key] = value1
 
     # There could be keys left over in dict2 - adding them to result here
